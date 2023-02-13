@@ -15,10 +15,26 @@ class ChessBot:
             raise ValueError("It is the bots turn to move, run make_move()")
         self.board.push_san(san_move)
 
-    def make_move(self) -> str:
+    def make_move(self) -> chess.Move:
         white_to_move = self.board.turn  # True if the next move should be made by white
         if white_to_move is not self.is_white:
             raise ValueError("It is your turn to move, run receive_move()")
         result = self.engine.play(self.board, chess.engine.Limit(time=1))
         self.board.push(result.move)
         return result.move
+
+
+def main():
+    engine_path = "engine\stockfish_15.1_win_x64_avx2\stockfish-windows-2022-x86-64-avx2.exe"
+    bot = ChessBot(engine_path, is_white=False)
+    while not bot.board.is_game_over():
+        rec = input("Move: ")
+        bot.receive_move(rec)
+        res = bot.make_move()
+        print(res)
+        print(res.from_square)
+        print(res.to_square)
+
+
+if __name__ == '__main__':
+    main()
