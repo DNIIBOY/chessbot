@@ -32,8 +32,8 @@ def main():
         bot.receive_move(rec)
         res = bot.make_move()
         print(res)
-        print(res.from_square)
-        print(res.to_square)
+        print(chess.square_name(res.from_square))
+        print(chess.square_name(res.to_square))
 
 
 if __name__ == '__main__':
