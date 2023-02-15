@@ -35,6 +35,7 @@ class ChessClicker:
             color = image.getpixel((file_coord - self.offset_size, rank_coord - self.offset_size))
             self.active_colors[square] = color
             sleep(0.1)
+        pyautogui.click(file_coord, rank_coord)  # Click the last square again, to deselect
 
     def detect_board(self):
         is_white = True
@@ -49,11 +50,21 @@ class ChessClicker:
         return []
 
     def detect_move(self):
-        return
-        for file in self.file_coords:
-            for rank in self.rank_coords:
-                file -= self.offset_size
-                rank -= self.offset_size
+        from_square = -1
+        to_square = -1
+        for f, file in enumerate(self.file_coords):
+            for r, rank in enumerate(self.rank_coords):
+                image = pyautogui.screenshot()
+                corner_color = image.getpixel((file - self.offset_size, rank - self.offset_size))
+                if corner_color not in self.active_colors:
+                    continue
+                center_color = image.getpixel((file, rank))
+                if center_color == corner_color:
+                    from_square = chess.parse_square(chess.FILE_NAMES[f] + chess.RANK_NAMES[r])
+                else:
+                    to_square = chess.parse_square(chess.FILE_NAMES[f] + chess.RANK_NAMES[r])
+                if from_square != -1 and to_square != -1:
+                    return [from_square, to_square]
 
     def make_move(self, from_square: str, to_square: str):
         if not (self.file_coords and self.rank_coords):
@@ -72,6 +83,9 @@ def main():
     cc = ChessClicker()
     sleep(1)
     cc.detect_board()
+    input()
+    mvfrom, mvto = cc.detect_move()
+    print(chess.square_name(mvfrom), chess.square_name(mvto))
     # cc.make_move("e7", "e5")
 
 
