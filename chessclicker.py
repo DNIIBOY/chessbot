@@ -78,7 +78,9 @@ class ChessClicker:
                 corner_color = image.getpixel((file - self.offset_size, rank - self.offset_size))
                 if corner_color not in self.active_colors:
                     continue
-                center_color = image.getpixel((file, rank))
+                # Find color of center of the square to see if it is empty
+                # Add more offset cause the bishop has a hole in the center
+                center_color = image.getpixel((file, rank+self.offset_size/4))
                 if center_color == corner_color:
                     # If the square is empty
                     from_square = chess.parse_square(chess.FILE_NAMES[f] + chess.RANK_NAMES[r])
