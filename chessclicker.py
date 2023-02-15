@@ -123,9 +123,8 @@ def main():
     # to_square = chess.parse_square("e4")
     # cc.make_move(chess.Move(from_square, to_square))
     sleep(0.2)
-    move = cc.wait_for_move()
-    if move is not None:
-        print(chess.square_name(move.from_square), chess.square_name(move.to_square))
+    while True:
+        print(cc.find_latest_move())
 
 
 if __name__ == '__main__':
