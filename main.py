@@ -16,9 +16,7 @@ def setup():
 def get_move():
     global clicker
     global bot
-    clicker.wait_for_move()
-    sleep(1)
-    move = clicker.find_latest_move()
+    move = clicker.wait_for_move()
     print("Receiving: ", move)
     bot.receive_move(move)
 
@@ -38,6 +36,8 @@ def main():
 
     while not bot.board.is_game_over():
         make_move()
+        if bot.board.is_game_over():
+            return
         get_move()
 
 
@@ -45,3 +45,4 @@ if __name__ == '__main__':
     clicker = ChessClicker()
     bot: ChessBot = None
     main()
+    print("ggez")

@@ -97,7 +97,8 @@ class ChessClicker:
         while True:
             latest = self.find_latest_move()
             if latest not in [self.last_move, None]:
-                return latest
+                sleep(0.2)  # Make sure to not check while a piece is moving
+                return self.find_latest_move()
 
     def make_move(self, move: chess.Move) -> None:
         """
