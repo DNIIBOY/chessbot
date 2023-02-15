@@ -12,7 +12,7 @@ class ChessClicker:
         self.offset_size = 0  # Distance in x and y direction from top left corner of square to store coordinate
         self.is_white = None  # Is the clicker playing for white?
         self.active_colors = [(0, 0, 0), (0, 0, 0)]  # RGB values of the color of an active square on both dark and light squares
-        self.last_move = [0, 0]  # From and to square, of the last move made
+        self.last_move: chess.Move = chess.Move.null()  # Last move made by the clicker
 
     def _calculate_coords(self, board_location: pyscreeze.Box) -> None:
         """
@@ -48,7 +48,7 @@ class ChessClicker:
         pyautogui.click(file_coord, rank_coord)  # Click the last square again, to deselect
         return self.active_colors
 
-    def detect_board(self) -> pyscreeze.Box | False:
+    def detect_board(self) -> pyscreeze.Box | bool:
         """
         Detect location and size of the chess board
         :return: A box with the board, or False if not found
@@ -64,63 +64,68 @@ class ChessClicker:
             is_white = not is_white
         return False
 
-    def find_latest_move(self) -> [chess.Square]:
+    def find_latest_move(self) -> chess.Move:
         """
         Find the latest move made on the board (may include own move)
         :return: List of squares the move was made from and to
         """
         from_square = -1
         to_square = -1
+        image = pyautogui.screenshot()
         for f, file in enumerate(self.file_coords):
             for r, rank in enumerate(self.rank_coords):
-                image = pyautogui.screenshot()
+                # Enumerate through all squares
                 corner_color = image.getpixel((file - self.offset_size, rank - self.offset_size))
                 if corner_color not in self.active_colors:
                     continue
                 center_color = image.getpixel((file, rank))
                 if center_color == corner_color:
+                    # If the square is empty
                     from_square = chess.parse_square(chess.FILE_NAMES[f] + chess.RANK_NAMES[r])
                 else:
                     to_square = chess.parse_square(chess.FILE_NAMES[f] + chess.RANK_NAMES[r])
                 if from_square != -1 and to_square != -1:
-                    return [from_square, to_square]
+                    return chess.Move(from_square, to_square)
 
-    def wait_for_move(self) -> [chess.Square]:
+    def wait_for_move(self) -> chess.Move:
         """
         Wait until there is made a move, which was not made by the clicker
         :return: The new move
         """
         while True:
             latest = self.find_latest_move()
-            if latest != self.last_move:
+            if latest not in [self.last_move, None]:
                 return latest
 
-    def make_move(self, from_square: str, to_square: str) -> None:
+    def make_move(self, move: chess.Move) -> None:
         """
         Make a move from one square to another
-        :param from_square: Name of the square to move from, eg: "e2"
-        :param to_square: Name of the square to move to, eg: "e4"
+        :param move: The move to make
         :return: None
         """
         if not (self.file_coords and self.rank_coords):
             return
-        from_square = chess.parse_square(from_square)
-        to_square = chess.parse_square(to_square)
+        from_square = move.from_square
+        to_square = move.to_square
         for square in [from_square, to_square]:
             file_coord = self.file_coords[chess.square_file(square)]
             rank_coord = self.rank_coords[chess.square_rank(square)]
             pyautogui.click(file_coord, rank_coord)
             sleep(0.1)
-        self.last_move = [from_square, to_square]
+        self.last_move = move
 
 
 def main():
     cc = ChessClicker()
     sleep(1)
     cc.detect_board()
-    cc.make_move("e7", "e5")
-    mvfrom, mvto = cc.wait_for_move()
-    print(chess.square_name(mvfrom), chess.square_name(mvto))
+    # from_square = chess.parse_square("e2")
+    # to_square = chess.parse_square("e4")
+    # cc.make_move(chess.Move(from_square, to_square))
+    sleep(0.2)
+    move = cc.wait_for_move()
+    if move is not None:
+        print(chess.square_name(move.from_square), chess.square_name(move.to_square))
 
 
 if __name__ == '__main__':
