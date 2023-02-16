@@ -1,5 +1,3 @@
-from typing import overload
-
 import chess
 import chess.engine
 
