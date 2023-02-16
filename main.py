@@ -39,8 +39,9 @@ def main():
     while not bot.board.is_game_over():
         make_move()
         if bot.board.is_game_over():
-            return
+            break
         get_move()
+    print(bot.stop())
 
 
 if __name__ == '__main__':
