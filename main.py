@@ -27,9 +27,9 @@ def get_move():
 def make_move():
     global clicker
     global bot
-    move = bot.make_move()
-    print("Making: ", move)
-    clicker.make_move(move)
+    result = bot.make_move()
+    print("Making: ", result.move)
+    clicker.make_move(result.move)
 
 
 def main():

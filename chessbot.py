@@ -21,17 +21,17 @@ class ChessBot:
             raise ValueError("It is the bots turn to move, run make_move()")
         self.board.push(move)
 
-    def make_move(self) -> chess.Move:
+    def make_move(self) -> chess.engine.PlayResult:
         """
         The bot will make a move.
-        :return: The chess.Move, the bot has made
+        :return: The result, containing the move made by the engine
         """
         white_to_move = self.board.turn  # True if the next move should be made by white
         if white_to_move is not self.is_white:
             raise ValueError("It is your turn to move, run receive_move()")
         result = self.engine.play(self.board, chess.engine.Limit(time=self.time_limit))
         self.board.push(result.move)
-        return result.move
+        return result
 
     def stop(self) -> str:
         """
