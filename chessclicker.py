@@ -4,6 +4,13 @@ from time import sleep
 
 import pyscreeze
 
+PROMOTION_ORDER = [
+    chess.QUEEN,
+    chess.KNIGHT,
+    chess.ROOK,
+    chess.BISHOP
+]
+
 
 class ChessClicker:
     def __init__(self):
@@ -80,7 +87,7 @@ class ChessClicker:
                     continue
                 # Find color of center of the square to see if it is empty
                 # Add more offset cause the bishop has a hole in the center
-                center_color = image.getpixel((file, rank+self.offset_size/4))
+                center_color = image.getpixel((file, rank + self.offset_size / 4))
                 if center_color == corner_color:
                     # If the square is empty
                     from_square = chess.parse_square(chess.FILE_NAMES[f] + chess.RANK_NAMES[r])
@@ -94,9 +101,11 @@ class ChessClicker:
         Wait until there is made a move, which was not made by the clicker
         :return: The new move
         """
+        # Remove promotion from comparison, as we do not detect those
+        last_move = chess.Move(self.last_move.from_square, self.last_move.to_square)
         while True:
             latest = self.find_latest_move()
-            if latest not in [self.last_move, None]:
+            if latest not in [last_move, None]:
                 sleep(0.2)  # Make sure to not check while a piece is moving
                 return self.find_latest_move()
 
@@ -115,19 +124,37 @@ class ChessClicker:
             rank_coord = self.rank_coords[chess.square_rank(square)]
             pyautogui.click(file_coord, rank_coord)
             sleep(0.1)
+        if move.promotion:
+            rank = PROMOTION_ORDER.index(move.promotion)  # 0 if Q, 1 if N and so on
+            if self.is_white:
+                # Count from rank 8 and down, if playing as white
+                rank = 7 - rank
+            rank_coord = self.rank_coords[rank]
+            pyautogui.click(file_coord, rank_coord)
         self.last_move = move
 
 
 def main():
+    proms = {
+        "q": chess.QUEEN,
+        "n": chess.KNIGHT,
+        "r": chess.ROOK,
+        "b": chess.BISHOP
+    }
     cc = ChessClicker()
     sleep(1)
     cc.detect_board()
-    # from_square = chess.parse_square("e2")
-    # to_square = chess.parse_square("e4")
-    # cc.make_move(chess.Move(from_square, to_square))
-    sleep(0.2)
     while True:
-        print(cc.find_latest_move())
+        from_square = input("From: ")
+        to_square = input("To: ")
+        prom = input("Prom: ")
+        if not prom:
+            move = chess.Move(chess.parse_square(from_square), chess.parse_square(to_square))
+            cc.make_move(move)
+            continue
+        prom = proms[prom]
+        move = chess.Move(chess.parse_square(from_square), chess.parse_square(to_square), promotion=prom)
+        cc.make_move(move)
 
 
 if __name__ == '__main__':

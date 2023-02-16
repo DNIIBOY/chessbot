@@ -1,5 +1,6 @@
 from chessbot import ChessBot
 from chessclicker import ChessClicker
+from time import sleep
 import sys
 
 
@@ -40,6 +41,7 @@ def main():
         make_move()
         if bot.board.is_game_over():
             break
+        sleep(0.1)
         get_move()
     print(bot.stop())
 
