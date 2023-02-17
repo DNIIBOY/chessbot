@@ -1,3 +1,4 @@
+import chess
 from chessbot import ChessBot
 from chessclicker import ChessClicker
 from confighandler import ConfigHandler
@@ -18,6 +19,8 @@ def get_move():
     global clicker
     global bot
     move = clicker.wait_for_move()
+    if move == chess.Move.null():
+        return True
     print("Receiving: ", move)
     bot.receive_move(move)
 
@@ -40,7 +43,8 @@ def main():
         if bot.board.is_game_over():
             break
         sleep(0.1)
-        get_move()
+        if get_move():
+            return
     print(bot.stop())
 
 

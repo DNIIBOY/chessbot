@@ -74,11 +74,16 @@ class ChessClicker:
     def find_latest_move(self) -> chess.Move:
         """
         Find the latest move made on the board (may include own move)
-        :return: List of squares the move was made from and to
+        :return: Move that was made, or null if they resigned
         """
         from_square = -1
         to_square = -1
         image = pyautogui.screenshot()
+        check1 = (self.file_coords[2], self.rank_coords[5])  # c6
+        check2 = (self.file_coords[5], self.rank_coords[5])  # f6
+        resign_green = (133, 169, 78)  # Color displayed when opponent resigns
+        if check1 == resign_green and check2 == resign_green:
+            return chess.Move.null()  # Return null move if they resigned
         for f, file in enumerate(self.file_coords):
             for r, rank in enumerate(self.rank_coords):
                 # Enumerate through all squares
