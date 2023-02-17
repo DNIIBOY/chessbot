@@ -1,19 +1,17 @@
 from chessbot import ChessBot
 from chessclicker import ChessClicker
+from confighandler import ConfigHandler
 from time import sleep
-import sys
 
 
 def setup():
-    if len(sys.argv) > 1:
-        limit = float(sys.argv[1])
-    else:
-        limit = 1
     global clicker
     global bot
+    global config
+    config.load()
     engine_path = "engine\stockfish_15.1_win_x64_avx2\stockfish-windows-2022-x86-64-avx2.exe"
     clicker.detect_board()
-    bot = ChessBot(engine_path, is_white=clicker.is_white, time_limit=limit)
+    bot = ChessBot(engine_path, is_white=clicker.is_white, time_limit=config.time_limit)
 
 
 def get_move():
@@ -49,5 +47,6 @@ def main():
 if __name__ == '__main__':
     clicker = ChessClicker()
     bot: ChessBot = None
+    config = ConfigHandler("config.json")
     main()
     print("ggez")

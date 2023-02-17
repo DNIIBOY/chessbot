@@ -9,6 +9,9 @@ class ConfigHandler:
         self.auto_restart: bool = False
         self.file_name = file_name
 
+    def __repr__(self):
+        return f"ConfigHandler({self.get()})"
+
     def load(self) -> dict:
         if not os.path.exists(self.file_name):
             self.save()
@@ -37,9 +40,8 @@ class ConfigHandler:
 
 def main():
     config = ConfigHandler("config.json")
-    print(config.load())
-    config.auto_restart = False
-    config.save()
+    config.load()
+    print(config)
 
 
 if __name__ == '__main__':
