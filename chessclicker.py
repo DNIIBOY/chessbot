@@ -14,8 +14,8 @@ PROMOTION_ORDER = [
 
 class ChessClicker:
     def __init__(self):
-        self.file_coords = []  # Coordinates of center of each file, len=8
-        self.rank_coords = []  # Coordinates of center of each rank, len=8
+        self.file_coords: list[float] = []  # Coordinates of center of each file, len=8
+        self.rank_coords: list[float] = []  # Coordinates of center of each rank, len=8
         self.offset_size = 0  # Distance in x and y direction from top left corner of square to store coordinate
         self.is_white = None  # Is the clicker playing for white?
         self.active_colors = [(0, 0, 0), (0, 0, 0)]  # RGB values of the color of an active square on both dark and light squares
@@ -54,6 +54,11 @@ class ChessClicker:
             sleep(0.1)
         pyautogui.click(file_coord, rank_coord)  # Click the last square again, to deselect
         return self.active_colors
+
+    def get_square_coords(self, square: chess.Square) -> tuple[float, float]:
+        file_coord = self.file_coords[chess.square_file(square)]
+        rank_coord = self.rank_coords[chess.square_rank(square)]
+        return file_coord, rank_coord
 
     def detect_board(self) -> pyscreeze.Box | bool:
         """
@@ -122,12 +127,9 @@ class ChessClicker:
         """
         if not (self.file_coords and self.rank_coords):
             return
-        from_square = move.from_square
-        to_square = move.to_square
-        for square in [from_square, to_square]:
-            file_coord = self.file_coords[chess.square_file(square)]
-            rank_coord = self.rank_coords[chess.square_rank(square)]
-            pyautogui.click(file_coord, rank_coord)
+        for square in [move.from_square, move.to_square]:
+            square_coords = self.get_square_coords(square)
+            pyautogui.click(square_coords)
             sleep(0.1)
         if move.promotion:
             rank = PROMOTION_ORDER.index(move.promotion)  # 0 if Q, 1 if N and so on
@@ -135,31 +137,30 @@ class ChessClicker:
                 # Count from rank 8 and down, if playing as white
                 rank = 7 - rank
             rank_coord = self.rank_coords[rank]
-            pyautogui.click(file_coord, rank_coord)
+            pyautogui.click(square_coords[0], rank_coord)  # Stay in same file
         self.last_move = move
+
+    def draw_move_arrow(self, move: chess.Move) -> None:
+        """
+        Draw an arrow from one square to another
+        :param move: The move to draw an arrow for
+        :return: None
+        """
+        from_coords = self.get_square_coords(move.from_square)
+        to_coords = self.get_square_coords(move.to_square)
+        pyautogui.moveTo(*from_coords)  # Move cursor to first square
+        pyautogui.dragTo(*to_coords, 0.1, button="right")  # Right click and drag to second square
 
 
 def main():
-    proms = {
-        "q": chess.QUEEN,
-        "n": chess.KNIGHT,
-        "r": chess.ROOK,
-        "b": chess.BISHOP
-    }
     cc = ChessClicker()
     sleep(1)
     cc.detect_board()
     while True:
         from_square = input("From: ")
         to_square = input("To: ")
-        prom = input("Prom: ")
-        if not prom:
-            move = chess.Move(chess.parse_square(from_square), chess.parse_square(to_square))
-            cc.make_move(move)
-            continue
-        prom = proms[prom]
-        move = chess.Move(chess.parse_square(from_square), chess.parse_square(to_square), promotion=prom)
-        cc.make_move(move)
+        move = chess.Move(chess.parse_square(from_square), chess.parse_square(to_square))
+        cc.draw_move_arrow(move)
 
 
 if __name__ == '__main__':
