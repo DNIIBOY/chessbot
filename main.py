@@ -31,6 +31,8 @@ def make_move():
     result = bot.make_move()
     print("Making: ", result.move)
     clicker.make_move(result.move)
+    if config.draw_ponder_arrows and result.ponder:
+        clicker.draw_move_arrow(result.ponder)
 
 
 def main():
