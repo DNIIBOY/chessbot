@@ -8,6 +8,8 @@ class ConfigHandler:
         self.draw_ponder_arrows: bool = False
         self.auto_restart: bool = False
         self.file_name = file_name
+        self.config_names = ("time_limit", "draw_ponder_arrows", "auto_restart")
+        self.config_types = (float, bool, bool)
 
     def __repr__(self):
         return f"ConfigHandler({self.get()})"
@@ -36,6 +38,17 @@ class ConfigHandler:
             "draw_ponder_arrows": self.draw_ponder_arrows,
             "auto_restart": self.auto_restart
         }
+
+    def change_config(self, config_name: str, value: float | bool):
+        match config_name:
+            case "time_limit":
+                self.time_limit = float(value)
+            case "draw_ponder_arrows":
+                self.draw_ponder_arrows = bool(value)
+            case "auto_restart":
+                self.auto_restart = bool(value)
+            case _:
+                raise ValueError(f"Config named {config_name} does not exist")
 
 
 def main():
