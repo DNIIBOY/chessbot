@@ -55,6 +55,9 @@ class ChessClicker:
         pyautogui.click(file_coord, rank_coord)  # Click the last square again, to deselect
         return self.active_colors
 
+    def has_found_board(self) -> bool:
+        return len(self.file_coords) > 0 and len(self.rank_coords) > 0 and self.is_white is not None
+
     def get_square_coords(self, square: chess.Square) -> tuple[float, float]:
         file_coord = self.file_coords[chess.square_file(square)]
         rank_coord = self.rank_coords[chess.square_rank(square)]
