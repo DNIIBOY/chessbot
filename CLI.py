@@ -17,6 +17,8 @@ TITLE_ART = """[green]
  ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝    ╚═════╝  ╚═════╝    ╚═╝   
                                                                       """
 
+ENGINE_PATH = "engine\stockfish_15.1_win_x64_avx2\stockfish-windows-2022-x86-64-avx2.exe"
+
 
 class CLI:
     def __init__(self):
@@ -59,11 +61,43 @@ class CLI:
         self.show_home_page()
 
     def run(self):
+        self.bot = ChessBot(ENGINE_PATH, self.clicker.is_white, self.config.time_limit)
+        try:
+            self.show_play_page()
+            if not self.bot.is_white:
+                # Receive a move first if playing as black
+                self.bot.receive_move(self.clicker.wait_for_move())
+            self.play_chess()
+        except KeyboardInterrupt:
+            self.bot.stop()
+            self.show_home_page()
+
+    def show_play_page(self):
         self.console.clear()
         self.console.rule()
         self.console.print(self.title_art)
         self.console.rule(f"[green]Playing as {'[italic white]white' if self.clicker.is_white else '[italic]black'}")
-        input()
+        # Flipped board when playing as black
+        board = self.bot.board if self.bot.is_white else self.bot.board.transform(chess.flip_vertical)
+        self.console.print("[green]" + str(board))
+
+    def play_chess(self):
+        self.show_play_page()
+        result = self.bot.make_move()
+        self.clicker.make_move(result.move)
+        if self.bot.board.is_game_over():
+            self.bot.stop()
+            self.show_home_page()
+        if self.config.draw_ponder_arrows:
+            self.clicker.draw_move_arrow(result.ponder)
+        self.show_play_page()
+        move = self.clicker.wait_for_move()
+        if move == chess.Move.null() or self.bot.board.is_game_over():
+            # If they resign or the game ended
+            self.bot.stop()
+            self.show_home_page()
+        self.bot.receive_move(move)
+        self.play_chess()
 
     def show_configs(self):
         options = f"""

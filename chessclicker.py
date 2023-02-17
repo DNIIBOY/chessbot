@@ -141,6 +141,7 @@ class ChessClicker:
                 rank = 7 - rank
             rank_coord = self.rank_coords[rank]
             pyautogui.click(square_coords[0], rank_coord)  # Stay in same file
+        sleep(0.1)  # Wait for the move animation of the piece
         self.last_move = move
 
     def draw_move_arrow(self, move: chess.Move) -> None:

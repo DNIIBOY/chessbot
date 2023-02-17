@@ -44,7 +44,6 @@ def main():
         make_move()
         if bot.board.is_game_over():
             break
-        sleep(0.1)
         if get_move():
             return
     print(bot.stop())
