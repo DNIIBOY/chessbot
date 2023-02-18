@@ -1,5 +1,5 @@
 {
     "time_limit": 0.5,
-    "draw_ponder_arrows": true,
-    "auto_restart": false
+    "draw_ponder_arrows": false,
+    "calculate_score": false
 }
