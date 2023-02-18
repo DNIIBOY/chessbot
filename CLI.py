@@ -88,7 +88,7 @@ class CLI:
         self.console.print(self.title_art)
         self.console.rule(f"[green]Playing as {'[italic white]white' if self.clicker.is_white else '[italic]black'}")
         # Flipped board when playing as black
-        board = self.bot.board if self.bot.is_white else self.bot.board.transform(chess.flip_vertical)
+        board = self.bot.board if self.bot.is_white else self.bot.board.transform(chess.flip_vertical).transform(chess.flip_horizontal)
         if self.config.calculate_score:
             self.console.print("[green]" + str(board)[:31], end="")
             score = self.game_info["score"].white() if self.bot.is_white else self.game_info["score"].black()

@@ -4,7 +4,10 @@ from CLI import CLI
 def main():
     cli = CLI()
     cli.setup()
-    cli.show_home_page()
+    try:
+        cli.show_home_page()
+    except KeyboardInterrupt:
+        cli.quit()
 
 
 if __name__ == '__main__':
