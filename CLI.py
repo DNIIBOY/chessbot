@@ -1,4 +1,5 @@
 import chess
+import chess.engine
 from chessbot import ChessBot
 from chessclicker import ChessClicker
 from confighandler import ConfigHandler
@@ -6,6 +7,7 @@ from rich import pretty
 from rich.console import Console
 from rich.prompt import Prompt, FloatPrompt, Confirm
 import sys
+import threading
 from time import sleep
 
 TITLE_ART = """[green]
@@ -25,8 +27,9 @@ class CLI:
         self.console = Console()
         self.config = ConfigHandler("config.json")
         self.title_art = TITLE_ART
-        self.clicker: ChessClicker = None
-        self.bot: ChessBot = None
+        self.clicker: ChessClicker | None = None
+        self.bot: ChessBot | None = None
+        self.game_info: chess.engine.InfoDict | None = None
 
     def setup(self):
         # os.system('mode con: cols=80 lines=15')
@@ -62,11 +65,18 @@ class CLI:
 
     def run(self):
         self.bot = ChessBot(ENGINE_PATH, self.clicker.is_white, self.config.time_limit)
+        # self.analysis_thread = threading.Thread(target=self.bot.analyse_loop)
+        # self.analysis_thread.start()
+        sleep(self.config.time_limit)
         try:
+            if self.config.calculate_score:
+                self.game_info = self.bot.analyse()
             self.show_play_page()
             if not self.bot.is_white:
                 # Receive a move first if playing as black
                 self.bot.receive_move(self.clicker.wait_for_move())
+                if self.config.calculate_score:
+                    self.game_info = self.bot.analyse()
             self.play_chess()
         except KeyboardInterrupt:
             self.bot.stop()
@@ -79,7 +89,13 @@ class CLI:
         self.console.rule(f"[green]Playing as {'[italic white]white' if self.clicker.is_white else '[italic]black'}")
         # Flipped board when playing as black
         board = self.bot.board if self.bot.is_white else self.bot.board.transform(chess.flip_vertical)
-        self.console.print("[green]" + str(board))
+        if self.config.calculate_score:
+            self.console.print("[green]" + str(board)[:31], end="")
+            score = self.game_info["score"].white() if self.bot.is_white else self.game_info["score"].black()
+            self.console.print(" " * 10 + f"[green]score: {score}")
+            self.console.print("[green]" + str(board)[32:])
+        else:
+            self.console.print("[green]" + str(board))
 
     def play_chess(self):
         self.show_play_page()
@@ -90,6 +106,8 @@ class CLI:
             self.show_home_page()
         if self.config.draw_ponder_arrows:
             self.clicker.draw_move_arrow(result.ponder)
+        if self.config.calculate_score:
+            self.game_info = self.bot.analyse()
         self.show_play_page()
         move = self.clicker.wait_for_move()
         if move == chess.Move.null() or self.bot.board.is_game_over():
@@ -97,13 +115,14 @@ class CLI:
             self.bot.stop()
             self.show_home_page()
         self.bot.receive_move(move)
+        self.game_info = self.bot.analyse()
         self.play_chess()
 
     def show_configs(self):
         options = f"""
         1. Time limit per move: {self.config.time_limit}
         2. Draw ponder arrows: {self.config.draw_ponder_arrows}
-        3. Auto restart: {self.config.auto_restart}
+        3. Calculate game score: {self.config.calculate_score}
         """
         self.console.clear()
         self.console.rule()

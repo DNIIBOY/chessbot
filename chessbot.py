@@ -8,6 +8,7 @@ class ChessBot:
         self.is_white = is_white
         self.board = chess.Board()
         self.time_limit = time_limit
+        self.info: chess.engine.InfoDict | None = None
 
     def receive_move(self, move: chess.Move) -> None:
         """
@@ -32,6 +33,9 @@ class ChessBot:
         result = self.engine.play(self.board, chess.engine.Limit(time=self.time_limit))
         self.board.push(result.move)
         return result
+
+    def analyse(self) -> chess.engine.InfoDict:
+        return self.engine.analyse(self.board, limit=chess.engine.Limit(time=self.time_limit))
 
     def stop(self) -> str:
         """
