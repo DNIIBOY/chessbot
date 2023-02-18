@@ -7,7 +7,6 @@ from rich import pretty
 from rich.console import Console
 from rich.prompt import Prompt, FloatPrompt, Confirm
 import sys
-import threading
 from time import sleep
 
 TITLE_ART = """[green]
@@ -31,14 +30,21 @@ class CLI:
         self.bot: ChessBot | None = None
         self.game_info: chess.engine.InfoDict | None = None
 
-    def setup(self):
-        # os.system('mode con: cols=80 lines=15')
+    def setup(self) -> None:
+        """
+        Run setup for the CLI, instantiates everything.
+        :return: None
+        """
         self.console.clear()
         self.config.load()
         pretty.install()
         self.clicker = ChessClicker()
 
-    def show_home_page(self):
+    def show_home_page(self) -> None:
+        """
+        Show the primary home page
+        :return: None
+        """
         options = """[green]
         [R]un the bot
         [D]etect the board
@@ -63,10 +69,13 @@ class CLI:
         choices[choice]()
         self.show_home_page()
 
-    def run(self):
+    def run(self) -> None:
+        """
+        Run the chess bot.
+        Plays a single game of chess.
+        :return: None
+        """
         self.bot = ChessBot(ENGINE_PATH, self.clicker.is_white, self.config.time_limit)
-        # self.analysis_thread = threading.Thread(target=self.bot.analyse_loop)
-        # self.analysis_thread.start()
         sleep(self.config.time_limit)
         try:
             if self.config.calculate_score:
@@ -82,7 +91,12 @@ class CLI:
             self.bot.stop()
             self.show_home_page()
 
-    def show_play_page(self):
+    def show_play_page(self) -> None:
+        """
+        Page shown when the bot is playing.
+        Show a board and the current score, if calculate_score is True
+        :return: None
+        """
         self.console.clear()
         self.console.rule()
         self.console.print(self.title_art)
@@ -97,17 +111,23 @@ class CLI:
         else:
             self.console.print("[green]" + str(board))
 
-    def play_chess(self):
+    def play_chess(self) -> None:
+        """
+        Called repeatedly for every move of chess to play
+        :return: None
+        """
         self.show_play_page()
         result = self.bot.make_move()
         self.clicker.make_move(result.move)
         if self.bot.board.is_game_over():
+            # Game ended
             self.bot.stop()
             self.show_home_page()
         if self.config.draw_ponder_arrows:
             self.clicker.draw_move_arrow(result.ponder)
         if self.config.calculate_score:
             self.game_info = self.bot.analyse()
+
         self.show_play_page()
         move = self.clicker.wait_for_move()
         if move == chess.Move.null() or self.bot.board.is_game_over():
@@ -116,9 +136,13 @@ class CLI:
             self.show_home_page()
         self.bot.receive_move(move)
         self.game_info = self.bot.analyse()
-        self.play_chess()
+        self.play_chess()  # Repeat
 
-    def show_configs(self):
+    def show_configs(self) -> None:
+        """
+        Show a list of all options and their current value
+        :return: None
+        """
         options = f"""
         1. Time limit per move: {self.config.time_limit}
         2. Draw ponder arrows: {self.config.draw_ponder_arrows}
@@ -130,16 +154,26 @@ class CLI:
         self.console.rule("[green] Options")
         self.console.print(options)
 
-    def change_config(self):
+    def change_config(self) -> None:
+        """
+        Open menu to choose which option to change
+        :return: None
+        """
         self.show_configs()
         choice = Prompt.ask("[green]Which option do you wish to change", choices=["1", "2", "3", "q"])
         if choice == "q":
             self.config.save()
             self.show_home_page()
         choice = int(choice) - 1
-        self.change_single_config(self.config.config_names[choice], self.config.config_types[choice])
+        self.change_single_option(self.config.config_names[choice], self.config.config_types[choice])
 
-    def change_single_config(self, config_name: str, config_type: type):
+    def change_single_option(self, config_name: str, config_type: type) -> None:
+        """
+        Open menu to change a single option
+        :param config_name: Name of option to change
+        :param config_type: Type of the option value, float or bool
+        :return: None
+        """
         self.show_configs()
         if config_type == float:
             new_val = FloatPrompt.ask(f"[green]What should the new value of {config_name} be?", default=1)
@@ -150,7 +184,11 @@ class CLI:
         self.config.change_config(config_name, new_val)
         self.change_config()
 
-    def quit(self):
+    def quit(self) -> None:
+        """
+        Kill everything and quit the program
+        :return: None
+        """
         self.console.clear()
         sys.exit(0)
 
