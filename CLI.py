@@ -5,7 +5,7 @@ from chessclicker import ChessClicker
 from confighandler import ConfigHandler
 from rich import pretty
 from rich.console import Console
-from rich.prompt import Prompt, FloatPrompt, Confirm
+from rich.prompt import Prompt, FloatPrompt, IntPrompt, Confirm
 import sys
 from time import sleep
 
@@ -75,8 +75,11 @@ class CLI:
         Plays a single game of chess.
         :return: None
         """
-        self.bot = ChessBot(ENGINE_PATH, self.clicker.is_white, self.config.time_limit)
-        sleep(self.config.time_limit)
+        if self.config.use_depth_limit:
+            self.bot = ChessBot(ENGINE_PATH, self.clicker.is_white, depth_limit=self.config.time_limit)
+        else:
+            self.bot = ChessBot(ENGINE_PATH, self.clicker.is_white, time_limit=self.config.time_limit)
+        sleep(self.config.time_limit)  # Wait for the bot to be initialized
         try:
             if self.config.calculate_score:
                 self.game_info = self.bot.analyse()
@@ -143,10 +146,13 @@ class CLI:
         Show a list of all options and their current value
         :return: None
         """
+        limit_name = "Depth" if self.config.use_depth_limit else "Time"
+        limit_val = self.config.depth_limit if self.config.use_depth_limit else self.config.time_limit
         options = f"""
-        1. Time limit per move: {self.config.time_limit}
-        2. Draw ponder arrows: {self.config.draw_ponder_arrows}
-        3. Calculate game score: {self.config.calculate_score}
+        1. {limit_name} limit per move: {limit_val}
+        2. Use depth as limit: {self.config.use_depth_limit}
+        3. Draw ponder arrows: {self.config.draw_ponder_arrows}
+        4. Calculate game score: {self.config.calculate_score}
         """
         self.console.clear()
         self.console.rule()
@@ -164,14 +170,15 @@ class CLI:
         if choice == "q":
             self.config.save()
             self.show_home_page()
-        choice = int(choice) - 1
+        choice = int(choice)
+        choice = 0 if choice == 1 and not self.config.use_depth_limit else choice  # Depth or time limit
         self.change_single_option(self.config.config_names[choice], self.config.config_types[choice])
 
     def change_single_option(self, config_name: str, config_type: type) -> None:
         """
         Open menu to change a single option
         :param config_name: Name of option to change
-        :param config_type: Type of the option value, float or bool
+        :param config_type: Type of the option value, float, int or bool
         :return: None
         """
         self.show_configs()
@@ -179,6 +186,8 @@ class CLI:
             new_val = FloatPrompt.ask(f"[green]What should the new value of {config_name} be?", default=1)
         elif config_type == bool:
             new_val = Confirm.ask(f"[green]Do you want {config_name} to be on?", default=False)
+        elif config_type == int:
+            new_val = IntPrompt.ask(f"[green]What should the new value of {config_name} be?", default=5)
         else:
             raise ValueError(f"Unsupported type '{config_type}'")
         self.config.change_config(config_name, new_val)

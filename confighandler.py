@@ -5,11 +5,13 @@ import json
 class ConfigHandler:
     def __init__(self, file_name: str):
         self.time_limit: float = 1.0
+        self.depth_limit: int = 5
+        self.use_depth_limit: bool = False
         self.draw_ponder_arrows: bool = False
         self.calculate_score: bool = False
         self.file_name = file_name
-        self.config_names = ("time_limit", "draw_ponder_arrows", "calculate_score")
-        self.config_types = (float, bool, bool)
+        self.config_names = ("time_limit", "depth_limit", "use_depth_limit", "draw_ponder_arrows", "calculate_score")
+        self.config_types = (float, int, bool, bool, bool)
 
     def __repr__(self):
         return f"ConfigHandler({self.get()})"
@@ -23,6 +25,8 @@ class ConfigHandler:
             config = json.load(f)
 
         self.time_limit = config.get("time_limit", self.time_limit)
+        self.depth_limit = config.get("depth_limit", self.depth_limit)
+        self.use_depth_limit = config.get("use_depth_limit", self.use_depth_limit)
         self.draw_ponder_arrows = config.get("draw_ponder_arrows", self.draw_ponder_arrows)
         self.calculate_score = config.get("calculate_score", self.calculate_score)
         return self.get()
@@ -35,6 +39,8 @@ class ConfigHandler:
     def get(self) -> dict:
         return {
             "time_limit": self.time_limit,
+            "depth_limit": self.depth_limit,
+            "use_depth_limit": self.use_depth_limit,
             "draw_ponder_arrows": self.draw_ponder_arrows,
             "calculate_score": self.calculate_score
         }
@@ -43,6 +49,10 @@ class ConfigHandler:
         match config_name:
             case "time_limit":
                 self.time_limit = float(value)
+            case "depth_limit":
+                self.depth_limit = int(value)
+            case "use_depth_limit":
+                self.use_depth_limit = bool(value)
             case "draw_ponder_arrows":
                 self.draw_ponder_arrows = bool(value)
             case "calculate_score":

@@ -1,5 +1,7 @@
 {
-    "time_limit": 1.0,
+    "time_limit": 5.0,
+    "depth_limit": 500,
+    "use_depth_limit": false,
     "draw_ponder_arrows": true,
     "calculate_score": true
 }

@@ -153,6 +153,9 @@ class ChessClicker:
         :param move: The move to draw an arrow for
         :return: None
         """
+        if not move:
+            # If the move is null, do not draw an arrow
+            return
         from_coords = self.get_square_coords(move.from_square)
         to_coords = self.get_square_coords(move.to_square)
         pyautogui.moveTo(*from_coords)  # Move cursor to first square
