@@ -1,8 +1,14 @@
 import chess
 import pyautogui
 from time import sleep
-
 import pyscreeze
+
+BOARD_IMAGES = [
+    "img/as_white_720.png",
+    "img/as_black_720.png",
+    "img/as_white_800.png",
+    "img/as_black_800.png",
+]
 
 PROMOTION_ORDER = [
     chess.QUEEN,
@@ -68,15 +74,12 @@ class ChessClicker:
         Detect location and size of the chess board
         :return: A box with the board, or False if not found
         """
-        is_white = True
-        for img in ["img/as_white.png", "img/as_black.png"]:
+        for img in BOARD_IMAGES:
             if coords := pyautogui.locateOnScreen(img, confidence=0.8):
                 print(coords)
-                self.is_white = is_white  # True first time, False second
+                self.is_white = "white" in img  # Check if the clicker is playing for white
                 self._calculate_coords(coords)
                 self._detect_active_colors()
-                return coords
-            is_white = not is_white
         return False
 
     def find_latest_move(self) -> chess.Move:
